@@ -1,0 +1,22 @@
+{
+    "name": "devtinder_server",
+    "version": "1.0.0",
+    "description": "",
+    "keywords": [
+        "node",
+        "js",
+        "javascript",
+        "backend"
+    ],
+    "license": "ISC",
+    "author": "Subash",
+    "type": "commonjs",
+    "main": "index.js",
+    "scripts": {
+        "dev": "nodemon src/app",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "dependencies": {
+        "express": "^5.2.1"
+    }
+}
