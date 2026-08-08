@@ -1,8 +1,40 @@
 const express = require('express')
+const connectDB = require('./config/database')
+const User = require('./models/user')
 
 const port = 3000
 
 const app = express()
+
+app.post('/users', (req, res) => {
+    const user = new User({
+        firstName: 'Sachithanandam',
+        lastName: 'sk',
+        email: 'sachithanandam@example.com',
+        password: 'password123',
+        age: 25,
+    })
+
+    user.save()
+
+    res.send('User added successfully!!!')
+})
+
+const connect = async () => {
+    try {
+        await connectDB()
+
+        app.listen(port, () => {
+            console.log(`Server is running successfully on port ${port}....`)
+        })
+
+        console.log('DB connected successfully!!!')
+    } catch (error) {
+        console.log('DB connection failed...', error.message)
+    }
+}
+
+connect()
 
 app.use('/users', (req, res) => {
     res.send('Hello, this is subash developer users!!!')
@@ -25,8 +57,4 @@ app.use('/test', (req, res, next) => {
     console.log('second route handler')
 
     res.send('this is second route handler')
-})
-
-app.listen(port, () => {
-    console.log(`Server is running successfully on port ${port}....`)
 })
