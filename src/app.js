@@ -2,6 +2,8 @@ const express = require('express')
 require('dotenv').config()
 const connectDB = require('./config/database')
 const User = require('./models/user')
+const { validateUser } = require('./utils/validation')
+const bcrypt = require('bcrypt')
 
 const port = 3000
 
@@ -9,22 +11,65 @@ const app = express()
 
 app.use(express.json())
 
-app.post('/users', async (req, res) => {
+app.post('/signup', async (req, res) => {
 
-    // console.log(req.body)
-
-    const user = new User(req.body)
-
+    const { firstName, lastName, email, password, age, skills, gender } = req.body
+ 
     try {
+
+        validateUser(req)
+
+        const passwordHash = await bcrypt.hash(password, 10)
+
+        console.log(passwordHash)
+
+        const user = new User({
+            firstName: firstName,
+            lastName: lastName,
+            email: email,
+            password: passwordHash,
+            age: age,
+            gender: gender,
+            skills: skills
+        })
+        
         await user.save()
+        
         res.status(201).send('User added successfully!!!')
     } catch (error) {
-        res.status(400).send('Failed to add user...')
+        res.status(400).send(`Failed to add user... ${error}`)
     }
 
     // user.save()
 
     // res.send('User added successfully!!!')
+})
+
+app.post('/login', async (req, res) => {
+
+    const { email, password } = req.body
+
+    try {
+
+        const user = await User.findOne({
+            email: email
+        })
+
+        if ( !user ) {
+            throw new Error('Invalid crendentials')
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, user.password)
+
+        if ( isPasswordValid ) {
+            res.status(200).send('User logged in successfully!!!')
+        } else {
+            res.status(400).send('Invalid crendentials') 
+        }
+
+    } catch (error) {
+        res.status(400).send(`Error, ${error}`)
+    }
 })
 
 app.get('/users', async (req, res) => {
