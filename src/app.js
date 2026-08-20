@@ -4,12 +4,17 @@ const connectDB = require('./config/database')
 const User = require('./models/user')
 const { validateUser } = require('./utils/validation')
 const bcrypt = require('bcrypt')
+const cookieParser = require('cookie-parser')
+const jwt = require('jsonwebtoken')
+const { userAuth } = require('./middleware/auth')
 
 const port = 3000
 
 const app = express()
 
 app.use(express.json())
+
+app.use(cookieParser())
 
 app.post('/signup', async (req, res) => {
 
@@ -59,9 +64,15 @@ app.post('/login', async (req, res) => {
             throw new Error('Invalid crendentials')
         }
 
-        const isPasswordValid = await bcrypt.compare(password, user.password)
+        const isPasswordValid = await user.validatePassword(password)
 
         if ( isPasswordValid ) {
+
+            const token = await user.getJWT()
+            console.log(token)
+
+            res.cookie("token", token)
+
             res.status(200).send('User logged in successfully!!!')
         } else {
             res.status(400).send('Invalid crendentials') 
@@ -72,8 +83,24 @@ app.post('/login', async (req, res) => {
     }
 })
 
+app.get('/profile', userAuth, async (req, res) => {
+    try {
+
+        const user = req.user
+
+        res.status(200).send(user)
+
+    } catch (error) {
+        res.status(400).send(`Error ${error}`)
+    }
+})
+
 app.get('/users', async (req, res) => {
     try {
+
+        const cookie = req.cookies
+
+        console.log(cookie)
         
         const users = await User.find({})
 
